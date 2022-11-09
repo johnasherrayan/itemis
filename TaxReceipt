@@ -1,0 +1,82 @@
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.stream.DoubleStream;
+
+import javax.naming.InitialContext;
+
+public class TaxReceipt {
+	
+	private ArrayList<String> purchaseItems(String str) {
+		String[] items = str.split("\n");
+		double total = 0;
+		ArrayList<String> receipt = new ArrayList<String>();
+		ArrayList<Double> salesTaxval = new ArrayList<Double>();
+		ArrayList<Double> salesTaxsum = new ArrayList<Double>();
+		boolean taxGoods = true;				
+		double itemsumWithTax = 0;
+		double salestaxValue = 0;
+		double totalTaxValue = 0;
+		NumberFormat formatter = new DecimalFormat("#0.00");
+
+
+		for (int i = 0; i < items.length; i++) {
+			String initial = items[i].substring(0,items[i].lastIndexOf("at ")-1);
+			double itemsum = Double.parseDouble(items[i].substring(items[i].lastIndexOf("at ")+3,items[i].length()));;
+			double salestax = itemsum*10/100;
+			double importduty = itemsum*5/100;
+			
+			
+			if(initial.contains("pill")){taxGoods = false;}
+			
+			if(initial.contains("chocolate")){taxGoods = false;}
+
+			if(initial.contains("book")){taxGoods = false;}
+			
+
+				if(taxGoods){
+					if(initial.contains("imported")) {
+						itemsumWithTax = itemsum+importduty+salestax;
+						salestaxValue = salestax +importduty;
+					} else {
+						itemsumWithTax = itemsum+salestax;
+						salestaxValue = salestax;
+					}
+				} else {
+					if(initial.contains("imported")) {
+						itemsumWithTax = itemsum+importduty;
+						salestaxValue = importduty;
+					} else {
+						itemsumWithTax = itemsum;
+						salestaxValue =0;
+					}
+					}
+				salesTaxval.add(itemsumWithTax);
+				salesTaxsum.add(salestaxValue);
+
+				try {
+					total += itemsumWithTax ;
+					totalTaxValue +=salesTaxsum.get(i);
+				} catch (Exception e) {
+				}
+				receipt.add(initial +": " +formatter.format(Math.round(itemsumWithTax* 100.0) / 100.0));	
+				taxGoods = true;
+		}
+		
+		receipt.add("Sales Tax:" + Math.round(totalTaxValue*20.0)/20.0);
+		receipt.add("Total: "+String.valueOf(formatter.format(Math.round(total* 100.0) / 100.0)));		
+		return receipt;
+	}
+	
+	
+	public static void main(String[] args) {
+		
+		String str1 = "1 book at 12.49\r\n1 music CD at 14.99\r\n1 chocolate bar at 0.85\r\n";
+		String str2 = "1 imported box of chocolates at 10.00\r\n1 imported bottle of perfume at 47.50";
+		String str3 = "1 imported bottle of perfume at 27.99\r\n1 bottle of perfume at 18.99\r\n1 packet of headache pills at 9.75\r\n1 box of imported chocolates at 11.25\r\n";
+		TaxReceipt salesTax = new TaxReceipt();	
+		for (String string : salesTax.purchaseItems(str1)) {
+			System.out.println(string);
+		}
+	}
+}
